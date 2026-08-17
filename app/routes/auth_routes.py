@@ -1,5 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
+
+import webauthn
+from webauthn.helpers.structs import RegistrationCredential
 
 from app.core.dependencies import get_session
 from app.schemas.user import UserCreate
@@ -12,13 +15,21 @@ auth_router = APIRouter(prefix="/ChaveDeAcesso", tags=["ChaveDeAcesso"])
 @auth_router.post("/Registrar/Opcoes")
 def register_options_route(
     user: UserCreate,
+    request: Request,
     session: Session = Depends(get_session)
 ):
-    return PasskeyService(session).register_options_service(user)
+    options = PasskeyService(session).register_options_service(user)
+    request.session["registration_challenge"] = options.challenge
+
+    return webauthn.options_to_json(options)
 
 @auth_router.post("/Registrar/Verificar")
-def register_verify_route():
-    pass
+def register_verify_route(
+    credential: RegistrationCredential,
+    request: Request,
+    session: Session = Depends(get_session)
+):
+    return PasskeyService(session).register_options_service(credential, request)
 
 @auth_router.post("/Autenticar/Opcoes")
 def auth_options_route():

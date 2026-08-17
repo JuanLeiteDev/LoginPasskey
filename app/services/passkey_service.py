@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 
 from app.models.user import User
 from app.models.passkey import Passkey
@@ -12,7 +12,8 @@ from webauthn.helpers.structs import (
     AuthenticatorSelectionCriteria,
     ResidentKeyRequirement,
     UserVerificationRequirement,
-    PublicKeyCredentialDescriptor
+    PublicKeyCredentialDescriptor,
+    RegistrationCredential
 )
 
 class PasskeyService():
@@ -74,8 +75,20 @@ class PasskeyService():
             user_name=existing_user.email,
             user_display_name=existing_user.name,
             authenticator_selection=authenticator_selec,
-            exclude_credentials=exclude_credentials
+            exclude_credentials=[]
         )
 
-        return webauthn.options_to_json(options)
+        return options
+
+    def register_verify_service(self, credential: RegistrationCredential, request: Request):
+        expected_challeng = request.session.get("registration_challenge")
+        verification = webauthn.verify_registration_response(
+            credential=credential,
+            expected_challenge=expected_challeng,
+            expected_origin=settings.RP_ORIGIN,
+            expected_rp_id=settings.RP_ID,
+            require_user_verification=True,
+        )
+
+        
     
