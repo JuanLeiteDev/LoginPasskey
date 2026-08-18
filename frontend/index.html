@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="pt-PT">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Acesso seguro e sem palavras-passe." />
+    <meta name="theme-color" content="#f5f7ff" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <title>Chave — Acesso sem palavra-passe</title>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="story" aria-labelledby="story-title">
+        <a class="brand" href="#" aria-label="Chave — página inicial">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M15.5 7.5a5 5 0 1 0-4.7 6.7L13 12h2v-2h2V8h2.5l1-1-2-2-1 1h-2.1a5 5 0 0 0 .1 1.5ZM8 11a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg>
+          </span>
+          <span>chave</span>
+        </a>
+
+        <div class="story-copy">
+          <span class="eyebrow"><span></span> Autenticação de nova geração</span>
+          <h1 id="story-title">A sua identidade.<br /><em>Só sua.</em></h1>
+          <p>Entre com o desbloqueio que já usa no seu dispositivo. Sem palavras-passe para memorizar, reutilizar ou perder.</p>
+
+          <ul class="benefits" aria-label="Benefícios">
+            <li>
+              <span class="benefit-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.6 2.9 8.8 7 10 4.1-1.2 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+              </span>
+              <span><strong>Resistente a phishing</strong><small>A chave fica protegida no seu dispositivo.</small></span>
+            </li>
+            <li>
+              <span class="benefit-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 5a7 7 0 1 0 7 7"/><path d="M12 8v4l3 2"/><path d="M16 3h5v5"/><path d="m21 3-5 5"/></svg>
+              </span>
+              <span><strong>Rápido por natureza</strong><small>Um toque, um olhar ou o PIN do dispositivo.</small></span>
+            </li>
+          </ul>
+        </div>
+
+        <p class="story-foot">Protegido pelo padrão aberto WebAuthn</p>
+        <div class="orb orb-one"></div>
+        <div class="orb orb-two"></div>
+      </section>
+
+      <section class="access" aria-labelledby="form-title">
+        <div class="access-inner">
+          <div class="security-pill" id="security-pill">
+            <span class="pulse"></span>
+            Ligação segura
+          </div>
+
+          <div class="tabs" role="tablist" aria-label="Tipo de acesso">
+            <button class="tab active" id="login-tab" role="tab" aria-selected="true" aria-controls="login-panel">Entrar</button>
+            <button class="tab" id="register-tab" role="tab" aria-selected="false" aria-controls="register-panel">Criar conta</button>
+          </div>
+
+          <div class="panel active" id="login-panel" role="tabpanel" aria-labelledby="login-tab">
+            <header class="form-heading">
+              <span class="step-label">Bem-vindo de volta</span>
+              <h2 id="form-title">Entre com a sua passkey</h2>
+              <p>Use a biometria, o PIN ou a chave de segurança deste dispositivo.</p>
+            </header>
+
+            <button class="primary-button" id="login-button" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M6 11v2a6 6 0 0 0 12 0v-2"/><path d="M9 18v3M15 18v3"/></svg>
+              <span>Continuar com passkey</span>
+              <span class="spinner" aria-hidden="true"></span>
+            </button>
+
+            <div class="microcopy">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z"/><path d="M12 11v5M12 8h.01"/></svg>
+              <p>O navegador vai mostrar as passkeys disponíveis. Os seus dados biométricos nunca são enviados.</p>
+            </div>
+          </div>
+
+          <form class="panel" id="register-panel" role="tabpanel" aria-labelledby="register-tab" novalidate>
+            <header class="form-heading">
+              <span class="step-label">Acesso sem complicações</span>
+              <h2>Crie a sua conta</h2>
+              <p>Indique os seus dados e guarde uma passkey neste dispositivo.</p>
+            </header>
+
+            <div class="field">
+              <label for="name">Nome completo</label>
+              <div class="input-wrap">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"/></svg>
+                <input id="name" name="name" type="text" autocomplete="name" placeholder="Como devemos chamar-lhe?" required minlength="2" />
+              </div>
+              <small class="field-error" id="name-error"></small>
+            </div>
+
+            <div class="field">
+              <label for="email">Email</label>
+              <div class="input-wrap">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="m4 7 8 6 8-6"/></svg>
+                <input id="email" name="email" type="email" inputmode="email" autocomplete="username webauthn" placeholder="nome@exemplo.pt" required />
+              </div>
+              <small class="field-error" id="email-error"></small>
+            </div>
+
+            <button class="primary-button" id="register-button" type="submit">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 7.5a5 5 0 1 0-4.7 6.7L13 12h2v-2h2V8h2.5l1-1-2-2-1 1h-2.1a5 5 0 0 0 .1 1.5ZM8 11a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg>
+              <span>Criar conta com passkey</span>
+              <span class="spinner" aria-hidden="true"></span>
+            </button>
+
+            <p class="terms">Ao continuar, concorda com os Termos de utilização e a Política de privacidade.</p>
+          </form>
+
+          <div class="support"><span>Precisa de ajuda?</span> Contacte o suporte</div>
+        </div>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true">
+      <span class="toast-icon"></span>
+      <div><strong id="toast-title"></strong><p id="toast-message"></p></div>
+      <button id="toast-close" aria-label="Fechar aviso">×</button>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

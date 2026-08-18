@@ -14,7 +14,7 @@ class User(Base):
     __tablename__ = "Users"
 
     id: Mapped[bytes] = mapped_column(
-        LargeBinary,
+        LargeBinary, 
         primary_key=True,
         default=lambda: uuid.uuid4().bytes
     )

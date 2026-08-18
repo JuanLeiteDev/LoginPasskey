@@ -1,23 +1,12 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from app.models.user import User
 from app.models.passkey import Passkey
-from app.schemas.user import UserCreate
+
+from webauthn.registration.verify_registration_response import VerifiedRegistration
 
 class PasskeyRepo():
     def __init__(self, session: Session):
         self.session = session
-
-    def create_user(self, user: UserCreate) -> User:
-        new_user = User(
-            name=user.name,
-            email=user.email
-        )
-
-        self.session.add(new_user)
-        self.session.commit()
-        self.session.refresh(new_user)
-        return new_user
 
     def get_credentials_by_email(self, user_email: str):
         return self.session.scalars(
@@ -25,9 +14,26 @@ class PasskeyRepo():
             .where(Passkey.user_email == user_email)
         ).all()
 
-    def get_user_by_email(self, user_email: str):
-        return self.session.scalar(
-            select(User)
-            .where(User.email == user_email)
+    def save_credentials_passkey(self, credentials: VerifiedRegistration, user_email: str):
+        new_passkey = Passkey(
+            credential_id=credentials.credential_id,
+            public_key=credentials.credential_public_key,
+            sign_count=credentials.sign_count,
+            device_type=credentials.credential_device_type,
+            backup=credentials.credential_backed_up,
+            user_email=user_email
         )
-    
+        
+        self.session.add(new_passkey)
+        self.session.commit()
+
+    def get_credential_by_id(self, credential_id: bytes):
+        return self.session.scalar(
+            select(Passkey)
+            .where(Passkey.credential_id == credential_id)
+        )
+
+    def update_sign_count(self, new_sign_count: int, credential: Passkey):
+        credential.sign_count = new_sign_count
+        self.session.commit()
+        

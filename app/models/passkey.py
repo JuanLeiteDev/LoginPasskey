@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey, LargeBinary
+from sqlalchemy import ForeignKey, LargeBinary, String
+from webauthn.helpers.structs import CredentialDeviceType
 
 from app.database.db import Base
 
@@ -25,6 +26,12 @@ class Passkey(Base):
         default=0,
         nullable=False
     )
+
+    device_type: Mapped[CredentialDeviceType] = mapped_column(
+        String(255)
+    )
+
+    backup: Mapped[bool] = mapped_column(default=False)
 
     user_email: Mapped[str] = mapped_column(
         ForeignKey("Users.email", ondelete="CASCADE"),
