@@ -10,7 +10,8 @@ class Settings(BaseSettings):
     ALGORITHM: str
 
     model_config = SettingsConfigDict(
-        env_file=".env"
+        env_file=".env",
+        extra="ignore"
     )
 
 class TokenSettings(BaseSettings):
@@ -21,7 +22,8 @@ class TokenSettings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_MINUTES: int
 
     model_config = SettingsConfigDict(
-        env_file=".env"
+        env_file=".env",
+        extra="ignore"
 )
 
 token_settings = TokenSettings()
