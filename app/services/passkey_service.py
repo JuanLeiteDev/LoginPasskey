@@ -126,9 +126,9 @@ class PasskeyService():
             raise InactiveUserError()
 
         verification = get_verify_authentication_response(
-            credentials, 
-            existing_credential, 
-            challenge_bytes
+            credentials,  
+            challenge_bytes,
+            existing_credential
         )
 
         if not verification.user_verified:
