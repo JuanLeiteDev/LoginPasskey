@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 def get_authenticator_selection() -> AuthenticatorSelectionCriteria:
     return AuthenticatorSelectionCriteria(
     resident_key=ResidentKeyRequirement.REQUIRED,
-    user_verification=UserVerificationRequirement.REQUIRED
+    user_verification=UserVerificationRequirement.PREFERRED
 )
 
 def get_generate_registration_options(

@@ -72,7 +72,10 @@ class PasskeyService():
         if not verification.user_verified:
             raise PasskeyUserVerificationFailedError()
         
-        user_id_str = request.session.get("current_user") 
+        user_id_str = request.session.get("current_user")
+        if not user_id_str:
+            raise RegistrationSessionNotFoundError()
+         
         user_id = str_to_bytes_base64(user_id_str)
 
         if not user_id:
