@@ -2,12 +2,16 @@ from sqlalchemy.orm import Session
 from fastapi import Request
 
 from app.core.exceptions import (
+    CredentialUserMismatchError,
+    InactiveUserError,
     InternalServerError,
+    InvalidAuthenticationResponseError,
     InvalidRegistrationResponseError,
     PasskeyUserVerificationFailedError,
     ActiveUserEmailAlreadyExistsError,
     ChallengeNotFoundError,
     CredentialNotFoundError,
+    RegistrationSessionNotFoundError,
     UserNotFoundError
 )
 from app.repository.passkey_repo import PasskeyRepo
@@ -18,7 +22,10 @@ from app.core.config import settings
 
 import base64
 import webauthn
-from webauthn.helpers.exceptions import InvalidRegistrationResponse
+from webauthn.helpers.exceptions import (
+    InvalidAuthenticationResponse,
+    InvalidRegistrationResponse
+)
 from webauthn.helpers.structs import (
     AuthenticatorSelectionCriteria,
     ResidentKeyRequirement,
@@ -81,18 +88,23 @@ class PasskeyService():
                 expected_rp_id=settings.RP_ID,
                 require_user_verification=True,
             )
-        except InvalidRegistrationResponse:
-            raise InvalidRegistrationResponseError()
-        except Exception:
-            raise InternalServerError()
+        except InvalidRegistrationResponse as exc:
+            raise InvalidRegistrationResponseError() from exc
+        except Exception as exc:
+            raise InternalServerError() from exc
 
         if not verification.user_verified:
             raise PasskeyUserVerificationFailedError()
         
         user_email = request.session.get("current_user")
-        PasskeyRepo(self.session).save_credentials_passkey(verification, user_email)
+        if not user_email:
+            raise RegistrationSessionNotFoundError()
 
         user = UserRepo(self.session).get_user_by_email(user_email)
+        if not user:
+            raise UserNotFoundError()
+
+        PasskeyRepo(self.session).save_credentials_passkey(verification, user_email)
         user.status = True
         self.session.commit()
         request.session.clear()
@@ -118,15 +130,20 @@ class PasskeyService():
             raise CredentialNotFoundError()
 
         challenge_bytes = base64.urlsafe_b64decode(challenge)
-        user_id = credentials.response.user_handle
-
-        existing_user = UserRepo(self.session).get_user_by_id(user_id)
-        if not existing_user:
-            raise UserNotFoundError()
 
         existing_credential = PasskeyRepo(self.session).get_credential_by_id(credentials.raw_id)
         if not existing_credential:
             raise CredentialNotFoundError()
+
+        if not existing_credential.user:
+            raise UserNotFoundError()
+
+        user_id = credentials.response.user_handle
+        if not user_id == existing_credential.user_id:
+            raise CredentialUserMismatchError()
+
+        if not existing_credential.user.status:
+            raise InactiveUserError()
 
         try:
             verification = webauthn.verify_authentication_response(
@@ -138,10 +155,11 @@ class PasskeyService():
                 credential_public_key=existing_credential.public_key,
                 credential_current_sign_count=existing_credential.sign_count
             )
-        except InvalidRegistrationResponse:
-            raise InvalidRegistrationResponseError()
-        except Exception:
-            raise InternalServerError()
+        except InvalidAuthenticationResponse as exc:
+            raise InvalidAuthenticationResponseError() from exc
+        except Exception as exc:
+            raise InternalServerError() from exc
+
 
         if not verification.user_verified:
             raise PasskeyUserVerificationFailedError() 
@@ -151,5 +169,5 @@ class PasskeyService():
             existing_credential
         )
 
+        request.session.clear()
         return f"Login efetuado com sucesso!"
-    

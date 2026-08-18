@@ -9,8 +9,14 @@ from webauthn.helpers.parse_registration_credential_json import (
 from webauthn.helpers.parse_authentication_credential_json import (
     parse_authentication_credential_json
 )
+from webauthn.helpers.exceptions import (
+    InvalidAuthenticationResponse,
+    InvalidJSONStructure,
+    InvalidRegistrationResponse
+)
 
 from app.core.dependencies import get_session
+from app.core.exceptions import InvalidCredentialJSONError
 from app.schemas.user import UserCreate
 from app.services.passkey_service import (
     PasskeyService
@@ -37,7 +43,11 @@ def register_verify_route(
     request: Request,
     session: Session = Depends(get_session)
 ):
-    credential = parse_registration_credential_json(credential_json)
+    try:
+        credential = parse_registration_credential_json(credential_json)
+    except (InvalidJSONStructure, InvalidRegistrationResponse) as exc:
+        raise InvalidCredentialJSONError() from exc
+
     return PasskeyService(session).register_verify_service(credential, request)
 
 @auth_router.post("/Autenticar/Opcoes", status_code=200)
@@ -57,5 +67,9 @@ def auth_verify_route(
     request: Request,
     session: Session = Depends(get_session)
 ):
-    credentials = parse_authentication_credential_json(credentials_json)
+    try:
+        credentials = parse_authentication_credential_json(credentials_json)
+    except (InvalidJSONStructure, InvalidAuthenticationResponse) as exc:
+        raise InvalidCredentialJSONError() from exc
+
     return PasskeyService(session).auth_verify_service(credentials, request)

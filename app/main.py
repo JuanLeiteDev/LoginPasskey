@@ -8,7 +8,7 @@ app = FastAPI()
 
 app.add_middleware(
     SessionMiddleware,
-    secret_key=settings.DATABASE_URL
+    secret_key=settings.SECRET_KEY
 )
 
 app.include_router(auth_router)
@@ -46,4 +46,29 @@ app.add_exception_handler(
 app.add_exception_handler(
     ha.UserNotFoundError,
     ha.user_not_found_handler
+)
+
+app.add_exception_handler(
+    ha.InvalidAuthenticationResponseError,
+    ha.invalid_authentication_response_handler
+)
+
+app.add_exception_handler(
+    ha.InvalidCredentialJSONError,
+    ha.invalid_credential_json_handler
+)
+
+app.add_exception_handler(
+    ha.CredentialUserMismatchError,
+    ha.credential_user_mismatch_handler
+)
+
+app.add_exception_handler(
+    ha.InactiveUserError,
+    ha.inactive_user_handler
+)
+
+app.add_exception_handler(
+    ha.RegistrationSessionNotFoundError,
+    ha.registration_session_not_found_handler
 )

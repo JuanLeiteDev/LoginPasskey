@@ -33,8 +33,9 @@ class Passkey(Base):
 
     backup: Mapped[bool] = mapped_column(default=False)
 
-    user_email: Mapped[str] = mapped_column(
-        ForeignKey("Users.email", ondelete="CASCADE"),
+    user_id: Mapped[bytes] = mapped_column(
+        LargeBinary,
+        ForeignKey("Users.id", ondelete="CASCADE"),
         nullable=False
     )
     

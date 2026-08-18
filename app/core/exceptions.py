@@ -21,5 +21,26 @@ class ChallengeNotFoundError(Exception):
 class CredentialNotFoundError(Exception):
     pass
 
+
 class UserNotFoundError(Exception):
+    pass
+
+
+class InvalidAuthenticationResponseError(Exception):
+    pass
+
+
+class InvalidCredentialJSONError(Exception):
+    pass
+
+
+class CredentialUserMismatchError(Exception):
+    pass
+
+
+class InactiveUserError(Exception):
+    pass
+
+
+class RegistrationSessionNotFoundError(Exception):
     pass
