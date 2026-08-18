@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
 import webauthn
+import base64
 from webauthn.helpers.structs import RegistrationCredential
 
 from app.core.dependencies import get_session
@@ -19,7 +20,9 @@ def register_options_route(
     session: Session = Depends(get_session)
 ):
     options = PasskeyService(session).register_options_service(user)
-    request.session["registration_challenge"] = options.challenge
+    challenge = base64.urlsafe_b64encode(options.challenge).decode("ascii")
+
+    request.session["registration_challenge"] = challenge
 
     return webauthn.options_to_json(options)
 

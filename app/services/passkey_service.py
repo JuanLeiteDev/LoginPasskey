@@ -1,18 +1,16 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import select
 from fastapi import HTTPException, Request
 
-from app.models.user import User
-from app.models.passkey import Passkey
+from app.repository.passkey_repo import PasskeyRepo
 from app.schemas.user import UserCreate
 from app.core.config import settings
 
+import base64
 import webauthn
 from webauthn.helpers.structs import (
     AuthenticatorSelectionCriteria,
     ResidentKeyRequirement,
     UserVerificationRequirement,
-    PublicKeyCredentialDescriptor,
     RegistrationCredential
 )
 
@@ -27,31 +25,8 @@ class PasskeyService():
         user_verification=UserVerificationRequirement.REQUIRED
     )
 
-    def _create_user(self, user: UserCreate) -> User:
-        new_user = User(
-            name=user.name,
-            email=user.email
-        )
-
-        self.session.add(new_user)
-        self.session.commit()
-        self.session.refresh(new_user)
-        return new_user
-
-    def _get_credentials_by_email(self, user_email: str):
-        return self.session.scalars(
-            select(Passkey)
-            .where(Passkey.user_email == user_email)
-        ).all()
-
-    def _get_user_by_email(self, user_email: str):
-        return self.session.scalar(
-            select(User)
-            .where(User.email == user_email)
-        )
-
     def register_options_service(self, user: UserCreate):
-        existing_user = self._get_user_by_email(user.email)
+        existing_user = PasskeyRepo(self.session).get_user_by_email(user.email)
         if existing_user:
             if existing_user.status:
                 raise HTTPException(
@@ -59,14 +34,9 @@ class PasskeyService():
                     detail="Já existe um utilizador ativo com esse email."
                 )
         else:
-            existing_user = self._create_user(user)
+            existing_user = PasskeyRepo(self.session).create_user(user)
 
         authenticator_selec = self._get_authenticator_selection()
-        exclude_credentials = self._get_credentials_by_email(user.email)
-        exclude_credentials = [
-            PublicKeyCredentialDescriptor(id=credential)
-            for credential in exclude_credentials
-        ]
 
         options = webauthn.generate_registration_options(
             rp_id=settings.RP_ID,
@@ -81,14 +51,16 @@ class PasskeyService():
         return options
 
     def register_verify_service(self, credential: RegistrationCredential, request: Request):
-        expected_challeng = request.session.get("registration_challenge")
+        challenge = request.session.get("registration_challenge")
+        challenge_bytes = base64.urlsafe_b64decode(challenge)
+
         verification = webauthn.verify_registration_response(
             credential=credential,
-            expected_challenge=expected_challeng,
+            expected_challenge=challenge_bytes,
             expected_origin=settings.RP_ORIGIN,
             expected_rp_id=settings.RP_ID,
             require_user_verification=True,
         )
 
-        
+        return verification
     
