@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import Request
+import logging
 
 from app.core.exceptions import (
     CredentialUserMismatchError,
@@ -8,7 +9,7 @@ from app.core.exceptions import (
     InvalidAuthenticationResponseError,
     InvalidRegistrationResponseError,
     PasskeyUserVerificationFailedError,
-    ActiveUserEmailAlreadyExistsError,
+    UsernameAlreadyExistsError,
     ChallengeNotFoundError,
     CredentialNotFoundError,
     RegistrationSessionNotFoundError,
@@ -22,6 +23,7 @@ from app.core.config import settings
 
 import base64
 import webauthn
+from webauthn.helpers.options_to_json_dict import options_to_json_dict
 from webauthn.helpers.exceptions import (
     InvalidAuthenticationResponse,
     InvalidRegistrationResponse
@@ -33,6 +35,9 @@ from webauthn.helpers.structs import (
     RegistrationCredential,
     AuthenticationCredential
 )
+
+logger = logging.getLogger(__name__)
+
 
 class PasskeyService():
     def __init__(self, session: Session):
@@ -46,12 +51,15 @@ class PasskeyService():
     )
 
     def register_options_service(self, user: UserCreate):
-        existing_user = UserRepo(self.session).get_user_by_email(user.email)
+        existing_user = UserRepo(self.session).get_user_by_name(user.username)
         if existing_user:
             if existing_user.status:
-                raise ActiveUserEmailAlreadyExistsError()
+                raise UsernameAlreadyExistsError()
+
         else:
             existing_user = UserRepo(self.session).create_user(user)
+
+        self.session.refresh(existing_user)
 
         authenticator_selec = self._get_authenticator_selection()
 
@@ -59,16 +67,16 @@ class PasskeyService():
             rp_id=settings.RP_ID,
             rp_name=settings.RP_NAME,
             user_id=existing_user.id,
-            user_name=existing_user.email,
-            user_display_name=existing_user.name,
+            user_name=existing_user.username,
+            user_display_name=existing_user.username,
             authenticator_selection=authenticator_selec,
             exclude_credentials=[]
         )
 
         challenge = base64.urlsafe_b64encode(options.challenge).decode("ascii")
-        options_json = webauthn.options_to_json(options)
+        options_json = options_to_json_dict(options)
 
-        return options_json, challenge
+        return options_json, challenge, existing_user
 
     def register_verify_service(self, credential: RegistrationCredential, request: Request):
         challenge = request.session.get("registration_challenge")
@@ -91,22 +99,24 @@ class PasskeyService():
         except InvalidRegistrationResponse as exc:
             raise InvalidRegistrationResponseError() from exc
         except Exception as exc:
+            logger.exception("Erro interno durante a verificação do registro WebAuthn.")
             raise InternalServerError() from exc
 
         if not verification.user_verified:
             raise PasskeyUserVerificationFailedError()
         
-        user_email = request.session.get("current_user")
-        if not user_email:
+        user_id_str = request.session.get("current_user")
+        user_id = base64.urlsafe_b64decode(user_id_str)
+        if not user_id:
             raise RegistrationSessionNotFoundError()
 
-        user = UserRepo(self.session).get_user_by_email(user_email)
+        user = UserRepo(self.session).get_user_by_id(user_id)
         if not user:
             raise UserNotFoundError()
 
-        PasskeyRepo(self.session).save_credentials_passkey(verification, user_email)
-        user.status = True
-        self.session.commit()
+        PasskeyRepo(self.session).save_credentials_passkey(verification, user_id)
+        UserRepo(self.session).update_user_status(user)
+
         request.session.clear()
         return f"Conta criada com succeso!"
 
@@ -116,7 +126,7 @@ class PasskeyService():
             user_verification=UserVerificationRequirement.REQUIRED
         )
 
-        options_json = webauthn.options_to_json(options)
+        options_json = options_to_json_dict(options)
         challenge = base64.urlsafe_b64encode(options.challenge).decode("ascii")
         
         return options_json, challenge
@@ -158,6 +168,7 @@ class PasskeyService():
         except InvalidAuthenticationResponse as exc:
             raise InvalidAuthenticationResponseError() from exc
         except Exception as exc:
+            logger.exception("Erro interno durante a verificação da autenticação WebAuthn.")
             raise InternalServerError() from exc
 
 

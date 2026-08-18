@@ -2,7 +2,6 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from app.core.exceptions import (
-    ActiveUserEmailAlreadyExistsError,
     ChallengeNotFoundError,
     CredentialNotFoundError,
     CredentialUserMismatchError,
@@ -13,6 +12,7 @@ from app.core.exceptions import (
     InvalidRegistrationResponseError,
     PasskeyUserVerificationFailedError,
     RegistrationSessionNotFoundError,
+    UsernameAlreadyExistsError,
     UserNotFoundError,
 )
 
@@ -67,13 +67,13 @@ async def passkey_user_verification_failed_handler(
     )
 
 
-async def active_user_email_already_exists_handler(
+async def username_already_exists_handler(
     request: Request,
-    exc: ActiveUserEmailAlreadyExistsError,
+    exc: UsernameAlreadyExistsError,
 ):
     return JSONResponse(
         status_code=409,
-        content={"detail": "Já existe um utilizador ativo com esse e-mail."},
+        content={"detail": "Já existe um utilizador com esse username."},
     )
 
 

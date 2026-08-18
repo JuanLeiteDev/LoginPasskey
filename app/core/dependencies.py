@@ -1,9 +1,10 @@
 from app.database.db import SessionLocal
 
 def get_session():
-    try:
-        session = SessionLocal()
+    session = SessionLocal()
 
-        yield session
+    try:
+        with session.begin():
+            yield session
     finally:
         session.close()

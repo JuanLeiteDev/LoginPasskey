@@ -201,26 +201,17 @@ function friendlyCredentialError(error) {
 }
 
 function validateRegistrationForm() {
-  const name = document.querySelector("#name");
-  const email = document.querySelector("#email");
-  const nameError = document.querySelector("#name-error");
-  const emailError = document.querySelector("#email-error");
-  let valid = true;
+  const username = document.querySelector("#username");
+  const usernameError = document.querySelector("#username-error");
+  const normalizedUsername = username.value.trim().toLowerCase();
+  const valid = /^[a-z][a-z0-9._]{2,29}$/.test(normalizedUsername);
 
-  nameError.textContent = "";
-  emailError.textContent = "";
-  name.closest(".field").classList.remove("invalid");
-  email.closest(".field").classList.remove("invalid");
+  username.value = normalizedUsername;
+  usernameError.textContent = "";
+  username.closest(".field").classList.toggle("invalid", !valid);
 
-  if (name.value.trim().length < 2 || /\d/.test(name.value)) {
-    nameError.textContent = "Indique um nome válido, sem números.";
-    name.closest(".field").classList.add("invalid");
-    valid = false;
-  }
-  if (!email.validity.valid) {
-    emailError.textContent = "Indique um endereço de email válido.";
-    email.closest(".field").classList.add("invalid");
-    valid = false;
+  if (!valid) {
+    usernameError.textContent = "Use 3 a 30 caracteres: letras minúsculas, números, ponto ou underscore; comece por uma letra.";
   }
 
   return valid;
@@ -236,8 +227,7 @@ registerPanel.addEventListener("submit", async (event) => {
     const options = await apiRequest(endpoints.registerOptions, {
       method: "POST",
       body: JSON.stringify({
-        name: document.querySelector("#name").value.trim(),
-        email: document.querySelector("#email").value.trim().toLowerCase(),
+        username: document.querySelector("#username").value,
       }),
     });
     const credential = await navigator.credentials.create({

@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 from typing import Any
 
+import base64
+
 from webauthn.helpers.parse_registration_credential_json import (
     parse_registration_credential_json
 )
@@ -26,13 +28,14 @@ auth_router = APIRouter(prefix="/ChaveDeAcesso", tags=["ChaveDeAcesso"])
 
 @auth_router.post("/Registrar/Opcoes", status_code=200)
 def register_options_route(
-    user: UserCreate,
+    new_user: UserCreate,
     request: Request,
     session: Session = Depends(get_session)
 ):
-    options, challenge = PasskeyService(session).register_options_service(user)
+    options, challenge, user = PasskeyService(session).register_options_service(new_user)
 
-    request.session["current_user"] = user.email
+    user_id_str = base64.urlsafe_b64encode(user.id).decode("ascii")
+    request.session["current_user"] = user_id_str
     request.session["registration_challenge"] = challenge
 
     return options

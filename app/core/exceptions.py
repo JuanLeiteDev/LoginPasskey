@@ -10,7 +10,7 @@ class PasskeyUserVerificationFailedError(Exception):
     pass
 
 
-class ActiveUserEmailAlreadyExistsError(Exception):
+class UsernameAlreadyExistsError(Exception):
     pass
 
 

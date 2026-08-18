@@ -8,7 +8,9 @@ app = FastAPI()
 
 app.add_middleware(
     SessionMiddleware,
-    secret_key=settings.SECRET_KEY
+    secret_key=settings.SECRET_KEY,
+    https_only=False,
+    same_site="lax"
 )
 
 app.include_router(auth_router)
@@ -29,8 +31,8 @@ app.add_exception_handler(
 )
 
 app.add_exception_handler(
-    ha.ActiveUserEmailAlreadyExistsError,
-    ha.active_user_email_already_exists_handler
+    ha.UsernameAlreadyExistsError,
+    ha.username_already_exists_handler
 )
 
 app.add_exception_handler(

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import LargeBinary
+from sqlalchemy import LargeBinary, String
 
 import uuid
 
@@ -18,8 +18,9 @@ class User(Base):
         primary_key=True,
         default=lambda: uuid.uuid4().bytes
     )
-    name: Mapped[str] = mapped_column(nullable=False)
-    email: Mapped[str] = mapped_column(unique=True, index=True, nullable=False)
+    username: Mapped[str] = mapped_column(String(30), nullable=False, unique=True, index=True)
+    email: Mapped[str] = mapped_column(unique=True, default=None, nullable=True)
+    email_verified: Mapped[bool] = mapped_column(default=False)
     status: Mapped[bool] = mapped_column(default=False)
     passkeys: Mapped[list["Passkey"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"

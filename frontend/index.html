@@ -79,25 +79,16 @@
             <header class="form-heading">
               <span class="step-label">Acesso sem complicações</span>
               <h2>Crie a sua conta</h2>
-              <p>Indique os seus dados e guarde uma passkey neste dispositivo.</p>
+              <p>Escolha o seu username e guarde uma passkey neste dispositivo.</p>
             </header>
 
             <div class="field">
-              <label for="name">Nome completo</label>
+              <label for="username">Username</label>
               <div class="input-wrap">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"/></svg>
-                <input id="name" name="name" type="text" autocomplete="name" placeholder="Como devemos chamar-lhe?" required minlength="2" />
+                <input id="username" name="username" type="text" autocomplete="username webauthn" autocapitalize="none" spellcheck="false" placeholder="ex.: juan.leite" required minlength="3" maxlength="30" pattern="[a-z][a-z0-9._]{2,29}" />
               </div>
-              <small class="field-error" id="name-error"></small>
-            </div>
-
-            <div class="field">
-              <label for="email">Email</label>
-              <div class="input-wrap">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="m4 7 8 6 8-6"/></svg>
-                <input id="email" name="email" type="email" inputmode="email" autocomplete="username webauthn" placeholder="nome@exemplo.pt" required />
-              </div>
-              <small class="field-error" id="email-error"></small>
+              <small class="field-error" id="username-error"></small>
             </div>
 
             <button class="primary-button" id="register-button" type="submit">

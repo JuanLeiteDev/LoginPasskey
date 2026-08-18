@@ -1,14 +1,14 @@
-from pydantic import BaseModel, EmailStr, field_validator, Field
+from pydantic import BaseModel, field_validator, Field
 
 class UserCreate(BaseModel):
-    name: str = Field(min_length=3, max_length=100)
-    email: EmailStr
+    username: str = Field(
+        min_length=3,
+        max_length=30,
+        pattern=r"^[a-z][a-z0-9._]{2,29}$"
+    )
 
-    @field_validator("name", mode="before")
+    @field_validator("username", mode="before")
     def name_validator(value: str):
-        value = " ".join(value.strip().title().split(" "))
-
-        if any(char.isdigit() for char in value):
-            raise ValueError()
+        value = "".join(value.strip().lower().split(" "))
 
         return value

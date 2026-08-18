@@ -8,24 +8,18 @@ class PasskeyRepo():
     def __init__(self, session: Session):
         self.session = session
 
-    def get_credentials_by_email(self, user_email: str):
-        return self.session.scalars(
-            select(Passkey)
-            .where(Passkey.user_email == user_email)
-        ).all()
-
-    def save_credentials_passkey(self, credentials: VerifiedRegistration, user_email: str):
+    def save_credentials_passkey(self, credentials: VerifiedRegistration, user_id: bytes):
         new_passkey = Passkey(
             credential_id=credentials.credential_id,
             public_key=credentials.credential_public_key,
             sign_count=credentials.sign_count,
             device_type=credentials.credential_device_type,
             backup=credentials.credential_backed_up,
-            user_email=user_email
+            user_id=user_id
         )
         
         self.session.add(new_passkey)
-        self.session.commit()
+        self.session.flush()
 
     def get_credential_by_id(self, credential_id: bytes):
         return self.session.scalar(
@@ -35,5 +29,5 @@ class PasskeyRepo():
 
     def update_sign_count(self, new_sign_count: int, credential: Passkey):
         credential.sign_count = new_sign_count
-        self.session.commit()
+        self.session.flush()
         
