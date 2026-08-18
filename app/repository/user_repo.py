@@ -9,7 +9,7 @@ class UserRepo():
 
     def create_user(self, user: UserCreate) -> User:
         new_user = User(
-            name=user.username,
+          username=user.username,
         )
 
         self.session.add(new_user)

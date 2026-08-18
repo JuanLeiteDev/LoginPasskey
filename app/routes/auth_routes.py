@@ -1,8 +1,6 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy.orm import Session
 from typing import Any
-
-import base64
 
 from webauthn.helpers.parse_registration_credential_json import (
     parse_registration_credential_json
@@ -32,10 +30,9 @@ def register_options_route(
     request: Request,
     session: Session = Depends(get_session)
 ):
-    options, challenge, user = PasskeyService(session).register_options_service(new_user)
+    options, challenge, user_id = PasskeyService(session).register_options_service(new_user)
 
-    user_id_str = base64.urlsafe_b64encode(user.id).decode("ascii")
-    request.session["current_user"] = user_id_str
+    request.session["current_user"] = user_id
     request.session["registration_challenge"] = challenge
 
     return options
@@ -68,6 +65,7 @@ def auth_options_route(
 def auth_verify_route(
     credentials_json: dict[str, Any],
     request: Request,
+    response: Response,
     session: Session = Depends(get_session)
 ):
     try:
@@ -75,4 +73,4 @@ def auth_verify_route(
     except (InvalidJSONStructure, InvalidAuthenticationResponse) as exc:
         raise InvalidCredentialJSONError() from exc
 
-    return PasskeyService(session).auth_verify_service(credentials, request)
+    return PasskeyService(session).auth_verify_service(credentials, request, response)
